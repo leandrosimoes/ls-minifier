@@ -1,6 +1,6 @@
 {
   "name": "ls-minifier",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A tool that minifies all .js and css files in a folder recursivelly using https://www.npmjs.com/package/node-minify",
   "main": "index.js",
   "repository": {

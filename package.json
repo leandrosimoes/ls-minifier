@@ -1,0 +1,45 @@
+{
+  "name": "ls-minifier",
+  "version": "1.0.0",
+  "description": "A tool that minifies all .js and css files in a folder recursivelly using https://www.npmjs.com/package/node-minify",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leandrosimoes/ls-minifier.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "ls-minifier": "index.js"
+  },
+  "keywords": [
+    "minify",
+    "all",
+    "javascript",
+    "uglify",
+    "uglifyjs",
+    "gcc",
+    "yui",
+    "sqwish",
+    "csso",
+    "css",
+    "cli",
+    "command",
+    "line",
+    "js",
+    "min",
+    "dist",
+    "reduce",
+    "ls-minifier"
+  ],
+  "author": "Leandro Simões <leandro.simoes@outlook.com>",
+  "bugs": {
+    "url": "https://github.com/leandrosimoes/ls-minifier/issues"
+  },
+  "homepage": "https://github.com/leandrosimoes/ls-minifier#readme",
+  "license": "ISC",
+  "dependencies": {
+    "node-minify": "^3.6.0"
+  }
+}

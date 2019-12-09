@@ -37,29 +37,49 @@ const walk = async (currentDirPath, callback) => {
     })
 }
 
-const lsMinifier = async (dir, options = {}, callback = DEFAULT_CALLBACK, language_in = DEFAULT_LANGUAGE_IN, language_out = DEFAULT_LANGUAGE_OUT) => {
-    const { js_compressor, css_compressor, silent = false } = options
+const lsMinifier = async (dir, options = {}, callback = DEFAULT_CALLBACK) => {
+    const { 
+        js_compressor, 
+        css_compressor, 
+        html_compressor, 
+        silent = false, 
+        js_language_in = DEFAULT_LANGUAGE_IN, 
+        js_language_out = DEFAULT_LANGUAGE_OUT, 
+        override = false 
+    } = options
 
     return await walk(dir, path => {
         return new Promise(resolve => {
             const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
-
             const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
+            const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
 
-            if (!is_valid_css && !is_valid_js) {
+            if (!is_valid_css && !is_valid_js && !is_valid_html) {
                 resolve()
                 return
             }
 
             const input = path
-            const output = path.replace(is_valid_js ? '.js' : '.css', is_valid_js ? '.min.js' : '.min.css')
+            const output = !override ? path.replace(/(\.js|\.css|\.html|\.htm)/g, '.min$1') : path
+            
+            let compressor = ''
+            let compressor_options = {}
 
-            const compressor_options = is_valid_js && js_compressor === 'gcc' ? { languageIn: language_in, languageOut: language_out } : {}
+            if (is_valid_js) {
+                // only gcc accept this options
+                if (js_compressor === 'gcc') compressor_options = { languageIn: js_language_in, languageOut: js_language_out }
+                
+                compressor = js_compressor
+            } else if (is_valid_css) {
+                compressor = css_compressor
+            } else if (is_valid_html) {
+                compressor = html_compressor
+            }
 
-            if (!silent) console.log(`Minifying ${path}`)
+            if (!silent) console.log(`Minifying ${path} ... `)
 
             _compressor.minify({
-                compressor: is_valid_js ? js_compressor : css_compressor,
+                compressor,
                 input,
                 output,
                 options: compressor_options,
@@ -78,12 +98,14 @@ if (require.main === module) {
     const silent = !!(args.find(a => a.startsWith('--silent')) || '')
     const js_compressor = (args.find(a => a.startsWith('--js-compressor=')) || '').replace('--js-compressor=', '') || 'yui'
     const css_compressor = (args.find(a => a.startsWith('--css-compressor=')) || '').replace('--css-compressor=', '') || 'yui'
-    const language_in = (args.find(a => a.startsWith('--language-in=')) || '').replace('--language-in=', '') || ''
-    const language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || ''
+    const html_compressor = 'html-minifier' // For now, this is the only html compressor that node-minify accepts
+    const js_language_in = (args.find(a => a.startsWith('--language-in=')) || '').replace('--language-in=', '') || DEFAULT_LANGUAGE_IN
+    const js_language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || DEFAULT_LANGUAGE_OUT
+    const override = !!(args.find(a => a.startsWith('--override')) || '')
 
     if (!input) throw new Error('Input Path is required')
 
-    lsMinifier(input, { js_compressor, css_compressor, silent, language_in, language_out })
+    lsMinifier(input, { js_compressor, css_compressor, html_compressor, silent, js_language_in, js_language_out, override })
         .then(() => {
             console.log('Minification finished')
         })

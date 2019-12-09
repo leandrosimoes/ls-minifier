@@ -8,7 +8,7 @@ A tool that minifies all .js, css and html files in a folder recursivelly using 
 
 ### Run CLI
 
-    > ls-minifier --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override
+    > ls-minifier --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override --signature-file=./path/to/signature.txt
 
 ### Run in your code
 
@@ -34,6 +34,7 @@ const options = {
     css_compressor: 'yui',
     html_compressor: 'html-minifier',
     override: false,
+    signature_file: '',
 }
 const callback = (err, min) => (err ? console.log(err) : console.log(min))
 
@@ -62,6 +63,9 @@ lsMinifier(input_path, options, callback)
 
 -   **override**
     Determines if will override the original input file or if will create another .min. file. (Default is false)
+
+-   **signature_file**
+    Path to a signature file with some text that you want to add to the top of the minified files.
 
 PS: As **ls-minifier** depends on **node-minify**, these types are defined by **node-minify** and
 can be found [here](https://www.npmjs.com/package/node-minify).

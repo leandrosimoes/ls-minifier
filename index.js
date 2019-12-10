@@ -128,7 +128,11 @@ const lsMinifier = async (dir, options = {}, callback = DEFAULT_CALLBACK) => {
 
 if (require.main === module) {
     const args = (process.argv || []).filter(a => a.startsWith('--'))
-    const input = (args.find(a => a.startsWith('--input=')) || '').replace('--input=', '') || __dirname
+    
+    let input = (args.find(a => a.startsWith('--input=')) || '').replace('--input=', '')
+    input = input ? `${__dirname}/${input}` : __dirname
+    input = path.resolve(input)
+    
     const silent = !!(args.find(a => a.startsWith('--silent')) || '')
     const js_compressor = (args.find(a => a.startsWith('--js-compressor=')) || '').replace('--js-compressor=', '') || 'yui'
     const css_compressor = (args.find(a => a.startsWith('--css-compressor=')) || '').replace('--css-compressor=', '') || 'yui'
@@ -137,8 +141,6 @@ if (require.main === module) {
     const js_language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || DEFAULT_LANGUAGE_OUT
     const override = !!(args.find(a => a.startsWith('--override')) || '')
     const signature_file = (args.find(a => a.startsWith('--signature-file=')) || '').replace('--signature-file=', '') || ''
-
-    if (!input) throw new Error('Input Path is required')
 
     lsMinifier(input, { js_compressor, css_compressor, html_compressor, silent, js_language_in, js_language_out, override, signature_file })
         .then(() => {

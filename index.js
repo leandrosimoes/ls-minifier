@@ -130,7 +130,7 @@ if (require.main === module) {
     const args = (process.argv || []).filter(a => a.startsWith('--'))
     
     let input = (args.find(a => a.startsWith('--input=')) || '').replace('--input=', '')
-    input = input ? `${__dirname}/${input}` : __dirname
+    input = input ? `${process.cwd()}/${input}` : process.cwd()
     input = path.resolve(input)
     
     const silent = !!(args.find(a => a.startsWith('--silent')) || '')

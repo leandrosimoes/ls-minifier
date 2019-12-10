@@ -138,6 +138,10 @@ if (require.main === module) {
     let input = (args.find(a => a.startsWith('--input=')) || '').replace('--input=', '')
     input = input ? `${process.cwd()}/${input}` : process.cwd()
     input = path.resolve(input)
+
+    let signature_file = (args.find(a => a.startsWith('--signature-file=')) || '').replace('--signature-file=', '') || ''
+    signature_file = signature_file ? `${process.cwd()}/${signature_file}` : ''
+    signature_file = signature_file ? path.resolve(signature_file) : ''
     
     const silent = !!(args.find(a => a.startsWith('--silent')) || '')
     const js_compressor = (args.find(a => a.startsWith('--js-compressor=')) || '').replace('--js-compressor=', '') || 'yui'
@@ -146,7 +150,6 @@ if (require.main === module) {
     const js_language_in = (args.find(a => a.startsWith('--language-in=')) || '').replace('--language-in=', '') || DEFAULT_LANGUAGE_IN
     const js_language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || DEFAULT_LANGUAGE_OUT
     const override = !!(args.find(a => a.startsWith('--override')) || '')
-    const signature_file = (args.find(a => a.startsWith('--signature-file=')) || '').replace('--signature-file=', '') || ''
     const version = (args.find(a => a.startsWith('--version')) || '')
 
     if (version) {

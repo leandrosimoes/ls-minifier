@@ -68,7 +68,7 @@ const walk = async (currentDirPath, callback) => {
     })
 }
 
-const lsMinifier = async (dir, options = {}, callback = DEFAULT_CALLBACK) => {
+const minify = (path, options, callback) => {
     const { 
         js_compressor, 
         css_compressor, 
@@ -79,51 +79,57 @@ const lsMinifier = async (dir, options = {}, callback = DEFAULT_CALLBACK) => {
         override = false,
         signature_file
     } = options
+    
+    return new Promise(resolve => {
+        const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
+        const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
+        const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
 
-    return await walk(dir, path => {
-        return new Promise(resolve => {
-            const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
-            const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
-            const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
+        if (!is_valid_css && !is_valid_js && !is_valid_html) {
+            resolve()
+            return
+        }
 
-            if (!is_valid_css && !is_valid_js && !is_valid_html) {
-                resolve()
-                return
-            }
+        const input = path
+        const output = !override ? path.replace(/(\.js|\.css|\.html|\.htm)/g, '.min$1') : path
+        
+        let compressor = ''
+        let compressor_options = {}
 
-            const input = path
-            const output = !override ? path.replace(/(\.js|\.css|\.html|\.htm)/g, '.min$1') : path
+        if (is_valid_js) {
+            // only gcc accept this options
+            if (js_compressor === 'gcc') compressor_options = { languageIn: js_language_in, languageOut: js_language_out }
             
-            let compressor = ''
-            let compressor_options = {}
+            compressor = js_compressor
+        } else if (is_valid_css) {
+            compressor = css_compressor
+        } else if (is_valid_html) {
+            compressor = html_compressor
+        }
 
-            if (is_valid_js) {
-                // only gcc accept this options
-                if (js_compressor === 'gcc') compressor_options = { languageIn: js_language_in, languageOut: js_language_out }
-                
-                compressor = js_compressor
-            } else if (is_valid_css) {
-                compressor = css_compressor
-            } else if (is_valid_html) {
-                compressor = html_compressor
-            }
+        if (!silent) console.log(`Minifying ${path} ... `)
 
-            if (!silent) console.log(`Minifying ${path} ... `)
+        _compressor.minify({
+            compressor,
+            input,
+            output,
+            options: compressor_options,
+            callback: (err, min) => {
+                if (!!signature_file) signFile(output, signature_file)
 
-            _compressor.minify({
-                compressor,
-                input,
-                output,
-                options: compressor_options,
-                callback: (err, min) => {
-                    if (!!signature_file) signFile(output, signature_file)
-
-                    callback(err, min)
-                    resolve()
-                },
-            })
+                callback(err, min)
+                resolve()
+            },
         })
     })
+}
+
+const lsMinifier = async (input, options = {}, callback = DEFAULT_CALLBACK) => {
+    const stat = fs.statSync(input)
+    
+    if (stat.isFile()) return await minify(input, options, callback)   
+
+    return await walk(input, path => minify(path, options, callback))
 }
 
 if (require.main === module) {
@@ -141,6 +147,12 @@ if (require.main === module) {
     const js_language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || DEFAULT_LANGUAGE_OUT
     const override = !!(args.find(a => a.startsWith('--override')) || '')
     const signature_file = (args.find(a => a.startsWith('--signature-file=')) || '').replace('--signature-file=', '') || ''
+    const version = (args.find(a => a.startsWith('--version')) || '')
+
+    if (version) {
+        const info = require('package.json')
+        console.log(`Using ${info.version}`)
+    }
 
     lsMinifier(input, { js_compressor, css_compressor, html_compressor, silent, js_language_in, js_language_out, override, signature_file })
         .then(() => {

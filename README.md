@@ -8,7 +8,7 @@ A tool that minifies all .js, css and html files in a folder recursivelly using 
 
 ### Run CLI
 
-    > ls-minifier --version --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override --signature-file=./path/to/signature.txt
+    > ls-minifier --version --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override --signature-file=./path/to/signature.txt --replacers=[VERSION]|v1.0.0;{{YEAR}}|2019
 
 ### Run in your code
 
@@ -37,6 +37,7 @@ const options = {
     html_compressor: 'html-minifier',
     override: false,
     signature_file: '',
+    replacers: []
 }
 const callback = (err, min) => (err ? console.log(err) : console.log(min))
 
@@ -71,6 +72,16 @@ lsMinifier(input_path, options, callback)
 
 -   **version**
     Show in console the current version of the ls-minifier package.
+
+-   **replacers**
+    Use this if you want to replace some keywords in your files. See the sample:
+
+```javascript
+const replacers = [
+    { from: '[VERSION]', to: 'v1.0.0' },
+    { from: '{{YEAR}}', to: '2019' },
+]
+```
 
 PS: As **ls-minifier** depends on **node-minify**, these types are defined by **node-minify** and
 can be found [here](https://www.npmjs.com/package/node-minify).

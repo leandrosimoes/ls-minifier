@@ -8,6 +8,10 @@ const DEFAULT_LANGUAGE_OUT = 'ECMASCRIPT5'
 let SIGNATURE = ''
 
 const signFile = (path, signature_file_path) => {
+    const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
+    const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
+    const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
+
     let init = ''
     let end = ''
 

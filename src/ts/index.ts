@@ -1,11 +1,13 @@
 import { readFileSync, writeFileSync, statSync, readdirSync, unlinkSync, existsSync, Stats } from 'fs'
 import { join, resolve } from 'path'
+
+// @ts-ignore
 import { minify } from 'node-minify'
 
-import { asyncForEach } from './utils'
-import LS_OPTIONS from './ls-options'
-import LS_REPLACER from './ls-replacer'
-import { DEFAULT_CALLBACK, DEFAULT_LANGUAGE_IN, DEFAULT_LANGUAGE_OUT } from './constants'
+import { asyncForEach } from './classes/utils'
+import LS_OPTIONS from './classes/ls-options'
+import LS_REPLACER from './classes/ls-replacer'
+import { DEFAULT_CALLBACK, DEFAULT_LANGUAGE_IN, DEFAULT_LANGUAGE_OUT } from './classes/constants'
 
 let SIGNATURE: string = ''
 
@@ -126,7 +128,7 @@ const minifyFile: Function = (input_path: string, options: LS_OPTIONS, callback:
     })
 }
 
-const lsMinifier: Function = async (input_path: string, options: LS_OPTIONS, callback: Function = DEFAULT_CALLBACK): Promise<void> => {
+export async function lsMinifier(input_path: string, options: LS_OPTIONS, callback: Function = DEFAULT_CALLBACK): Promise<void> {
     const stat = statSync(input_path)
 
     if (stat.isFile()) return await minifyFile(input_path, options, callback)
@@ -163,7 +165,7 @@ if (require.main === module) {
         })
 
     if (version) {
-        const info: any = require('package.json')
+        const info: any = require('../../package.json')
         console.log(`Using ${info.version}`)
     }
 
@@ -175,5 +177,7 @@ if (require.main === module) {
             console.error(err)
         })
 } else {
-    module.exports = lsMinifier
+    module.exports = {
+        lsMinifier,
+    }
 }

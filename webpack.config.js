@@ -4,14 +4,14 @@ const mode = isProduction ? 'production' : 'development';
 module.exports = {
     mode,
     entry: {
-        '../dist/index': './src/ts/index',
+        '../dist/index': './src/ts/index'
     },
     output: {
         filename: '[name].js',
         libraryTarget: 'commonjs2'
     },
-    resolve: {
-        extensions: ['.ts', '.js']
+    resolve: {        
+        extensions: ['.tsx', '.ts', '.js', '.json']
     },
     module: {
         rules: [
@@ -19,7 +19,11 @@ module.exports = {
                 test: /\.tsx?$/,
                 exclude: /(node_modules|bower_components)/,
                 use: 'ts-loader'
-            }
+            },
+            {
+                test: /\.jar$/,
+                use: 'ignore-loader'
+            },
         ]
     },
     target: 'node'

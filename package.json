@@ -1,6 +1,6 @@
 {
   "name": "ls-minifier",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A tool that minifies all .js, css and html files in a folder recursivelly using https://www.npmjs.com/package/node-minify",
   "main": "./dist/index",
   "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
     "test": "ts-node node_modules/jasmine/bin/jasmine"
   },
   "bin": {
-    "ls-minifier": "index.js"
+    "ls-minifier": "./dist/index.js"
   },
   "keywords": [
     "minify",

@@ -56,13 +56,13 @@ lsMinifier(input_path, options, callback)
     Determine the version of ecmascript of the input file. (Default is ECMASCRIPT5)
 
 -   **js_compressor**
-    Determines the compression type that js files should be put through. (Default is yui)
+    Determines the compression type that js files should be put through. (All js files will be ignored if this option is not set)
 
 -   **css_compressor**
-    Determines the compression type that css files should be put through. (Default is yui)
+    Determines the compression type that css files should be put through. (All css files will be ignored if this option is not set)
 
 -   **html_compressor**
-    Determines the compression type that html files should be put through. (Default is html-minifier)
+    Determines the compression type that html files should be put through. (All html files will be ignored if this option is not set)
 
 -   **override**
     Determines if will override the original input file or if will create another .min. file. (Default is false)

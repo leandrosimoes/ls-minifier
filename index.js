@@ -8,9 +8,9 @@ const DEFAULT_LANGUAGE_OUT = 'ECMASCRIPT5'
 let SIGNATURE = ''
 
 const signFile = (path, signature_file_path) => {
-    const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
-    const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
-    const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
+    const is_valid_js = path.endsWith('.js')
+    const is_valid_css = path.endsWith('.css')
+    const is_valid_html = path.endsWith('.html') || path.endsWith('.htm')
 
     let init = ''
     let end = ''
@@ -25,12 +25,12 @@ const signFile = (path, signature_file_path) => {
 
     SIGNATURE = SIGNATURE || fs.readFileSync(signature_file_path)
 
-    const output_file_content = fs.readFileSync(path)
+    const output_file_content = fs.readFileSync(path).toString()
     const signed_file_content = `
 ${init}
 ${SIGNATURE}
 ${end}
-${output_file_content}`
+${output_file_content.trim()}`
 
     fs.writeFileSync(path, signed_file_content)
 }
@@ -44,7 +44,7 @@ const prepareFile = async (input, replacers) => {
     let final_file_content = output_file_content
 
     await asyncForEach(replacers, async r => {
-        const rgx = new RegExp(r.from, "g")
+        const rgx = new RegExp(r.from, 'g')
         final_file_content = final_file_content.replace(rgx, r.to)
     })
 
@@ -88,45 +88,27 @@ const deleteTempFile = path => {
     if (fs.existsSync(path)) fs.unlinkSync(path)
 }
 
-const minify = (path, options, callback) => {
-    const {
-        js_compressor,
-        css_compressor,
-        html_compressor,
-        silent = false,
-        js_language_in = DEFAULT_LANGUAGE_IN,
-        js_language_out = DEFAULT_LANGUAGE_OUT,
-        override = false,
-        signature_file,
-        replacers = [],
-    } = options
+const minifyJS = (path, options, callback) => {
+    const { js_compressor, silent = false, js_language_in = DEFAULT_LANGUAGE_IN, js_language_out = DEFAULT_LANGUAGE_OUT, override = false, signature_file, replacers = [] } = options
 
     return new Promise(resolve => {
         const is_valid_js = path.endsWith('.js') && !path.endsWith('.min.js')
-        const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
-        const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
 
-        if (!is_valid_css && !is_valid_js && !is_valid_html) {
+        if (!is_valid_js) {
             resolve()
             return
         }
 
         const input = path
-        const output = !override ? path.replace(/(\.js|\.css|\.html|\.htm)/g, '.min$1') : path
+        const output = !override ? path.replace(/(\.js)/g, '.min$1') : path
 
         let compressor = ''
         let compressor_options = {}
 
-        if (is_valid_js) {
-            // only gcc accept this options
-            if (js_compressor === 'gcc') compressor_options = { languageIn: js_language_in, languageOut: js_language_out }
+        // only gcc accept this options
+        if (js_compressor === 'gcc') compressor_options = { languageIn: js_language_in, languageOut: js_language_out }
 
-            compressor = js_compressor
-        } else if (is_valid_css) {
-            compressor = css_compressor
-        } else if (is_valid_html) {
-            compressor = html_compressor
-        }
+        compressor = js_compressor
 
         if (!silent) console.log(`Minifying ${path} ... `)
 
@@ -149,6 +131,88 @@ const minify = (path, options, callback) => {
     })
 }
 
+const minifyCSS = (path, options, callback) => {
+    const { css_compressor, silent = false, override = false, signature_file, replacers = [] } = options
+
+    return new Promise(resolve => {
+        const is_valid_css = path.endsWith('.css') && !path.endsWith('.min.css')
+
+        if (!is_valid_css) {
+            resolve()
+            return
+        }
+
+        const input = path
+        const output = !override ? path.replace(/(\.css)/g, '.min$1') : path
+
+        let compressor = css_compressor
+
+        if (!silent) console.log(`Minifying ${path} ... `)
+
+        prepareFile(input, replacers).then(inputPath => {
+            _compressor.minify({
+                compressor,
+                input: inputPath,
+                output,
+                callback: (err, min) => {
+                    if (!!signature_file) signFile(output, signature_file)
+
+                    if (inputPath.indexOf('.ls-minifier-temp.') > -1) deleteTempFile(inputPath)
+
+                    callback(err, min)
+                    resolve()
+                },
+            })
+        })
+    })
+}
+
+const minifyHTML = (path, options, callback) => {
+    const { html_compressor, silent = false, override = false, signature_file, replacers = [] } = options
+
+    return new Promise(resolve => {
+        const is_valid_html = (path.endsWith('.html') || path.endsWith('.htm')) && !path.endsWith('.min.html') && !path.endsWith('.min.htm')
+
+        if (!is_valid_html) {
+            resolve()
+            return
+        }
+
+        const input = path
+        const output = !override ? path.replace(/(\.html|\.htm)/g, '.min$1') : path
+
+        let compressor = html_compressor
+
+        if (!silent) console.log(`Minifying ${path} ... `)
+
+        prepareFile(input, replacers).then(inputPath => {
+            _compressor.minify({
+                compressor,
+                input: inputPath,
+                output,
+                callback: (err, min) => {
+                    if (!!signature_file) signFile(output, signature_file)
+
+                    if (inputPath.indexOf('.ls-minifier-temp.') > -1) deleteTempFile(inputPath)
+
+                    callback(err, min)
+                    resolve()
+                },
+            })
+        })
+    })
+}
+
+const minify = async (path, options, callback) => {
+    const { js_compressor, css_compressor, html_compressor } = options
+
+    if (!js_compressor && !css_compressor && !html_compressor) throw new Error('You must inform at least one compressor')
+
+    if (js_compressor) await minifyJS(path, options, callback)
+    if (css_compressor) await minifyCSS(path, options, callback)
+    if (html_compressor) await minifyHTML(path, options, callback)
+}
+
 const lsMinifier = async (input, options = {}, callback = DEFAULT_CALLBACK) => {
     const stat = fs.statSync(input)
 
@@ -169,9 +233,9 @@ if (require.main === module) {
     signature_file = signature_file ? path.resolve(signature_file) : ''
 
     const silent = !!(args.find(a => a.startsWith('--silent')) || '')
-    const js_compressor = (args.find(a => a.startsWith('--js-compressor=')) || '').replace('--js-compressor=', '') || 'yui'
-    const css_compressor = (args.find(a => a.startsWith('--css-compressor=')) || '').replace('--css-compressor=', '') || 'yui'
-    const html_compressor = 'html-minifier' // For now, this is the only html compressor that node-minify accepts
+    const js_compressor = (args.find(a => a.startsWith('--js-compressor=')) || '').replace('--js-compressor=', '')
+    const css_compressor = (args.find(a => a.startsWith('--css-compressor=')) || '').replace('--css-compressor=', '')
+    const html_compressor = (args.find(a => a.startsWith('--html-compressor=')) || '').replace('--html-compressor=', '')
     const js_language_in = (args.find(a => a.startsWith('--language-in=')) || '').replace('--language-in=', '') || DEFAULT_LANGUAGE_IN
     const js_language_out = (args.find(a => a.startsWith('--language-out=')) || '').replace('--language-out=', '') || DEFAULT_LANGUAGE_OUT
     const override = !!(args.find(a => a.startsWith('--override')) || '')

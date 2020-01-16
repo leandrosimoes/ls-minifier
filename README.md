@@ -1,5 +1,8 @@
 # ls-minifier
 
+![Node CI](https://github.com/leandrosimoes/ls-countdown/workflows/Node%20CI/badge.svg)
+![Node.js Package](https://github.com/leandrosimoes/ls-countdown/workflows/Node%2Ejs%20Package/badge.svg)
+
 A tool that minifies all .js, css and html files in a folder recursivelly using https://www.npmjs.com/package/node-minify
 
 ### Installation

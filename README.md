@@ -1,5 +1,6 @@
 # ls-minifier
 
+[![npm version](https://badge.fury.io/js/ls-minifier.svg)](https://badge.fury.io/js/ls-minifier)
 ![Node.js Package](https://github.com/leandrosimoes/ls-minifier/workflows/Node%2Ejs%20Package/badge.svg)
 
 A tool that minifies all .js, css and html files in a folder recursivelly using https://www.npmjs.com/package/node-minify

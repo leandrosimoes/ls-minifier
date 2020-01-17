@@ -1,5 +1,6 @@
 # ls-minifier
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/11fa54a446614cafbfd4fe648499899e)](https://app.codacy.com/manual/leandrosimoes/ls-minifier?utm_source=github.com&utm_medium=referral&utm_content=leandrosimoes/ls-minifier&utm_campaign=Badge_Grade_Dashboard)
 [![npm version](https://badge.fury.io/js/ls-minifier.svg)](https://badge.fury.io/js/ls-minifier)
 ![Node.js Package](https://github.com/leandrosimoes/ls-minifier/workflows/Node%2Ejs%20Package/badge.svg)
 

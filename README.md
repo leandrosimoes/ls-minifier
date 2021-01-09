@@ -14,6 +14,30 @@ A tool that minifies all .js, css and html files in a folder recursivelly using 
 
     > ls-minifier --version --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override --signature-file=./path/to/signature.txt --replacers=[VERSION]|v1.0.0;{{YEAR}}|2019
 
+### Compressors Configuration File
+
+You can specify some configurations for each compressor using a `.ls-minifyrc` file the must be located at the root of the command execution path. The file must contain a valid JSON object like this:
+
+```json
+{
+    "js_compressor_options": {
+        ...
+    },
+    "css_compressor_options": {
+        ...
+    },
+    "html_compressor_options": {
+        ...
+    }
+}
+```
+
+The options for each compressor you can see at the [here](https://github.com/srod/node-minify/tree/3.6.0)
+
+### Signature File
+
+You can also create a `.ls-minify-sign` file at the root of the command execution to use as a signature to sign each minification. This file must contain just plain text and will omit the `--signature-file` command flag.
+
 ### Run in your code
 
 `lsMinifier` function has 3 parts: input-path, options, and callback, such that
@@ -41,7 +65,17 @@ const options = {
     html_compressor: 'html-minifier',
     override: false,
     signature_file: '',
-    replacers: []
+    replacers: [],
+    // EXTRA SPECIFIC OPTIONS FOR THE COMPRESSORS
+    js_compressor_options: {
+        ...
+    },
+    css_compressor_options: {
+        ...
+    },
+    html_compressor_options: {
+        ...
+    }
 }
 const callback = (err, min) => (err ? console.log(err) : console.log(min))
 
@@ -87,5 +121,5 @@ const replacers = [
 ]
 ```
 
-PS: As **ls-minifier** depends on **node-minify**, these types are defined by **node-minify** and
-can be found [here](https://www.npmjs.com/package/node-minify).
+PS: As **ls-minifier** depends on **node-minify v3.6.0**, these types are defined by **node-minify** and
+can be found [here](https://github.com/srod/node-minify/tree/3.6.0).

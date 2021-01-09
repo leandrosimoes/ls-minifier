@@ -1,6 +1,6 @@
 {
   "name": "ls-minifier",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A tool that minifies all .js, css and html files in a folder recursivelly using https://www.npmjs.com/package/node-minify",
   "main": "index.js",
   "repository": {
@@ -41,5 +41,12 @@
   "license": "ISC",
   "dependencies": {
     "node-minify": "^3.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-defaults": "^9.0.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^2.2.1"
   }
 }

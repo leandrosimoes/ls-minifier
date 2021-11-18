@@ -4,7 +4,28 @@
 const fs = require('fs')
 const path = require('path')
 const _compressor = require('node-minify')
-const DEFAULT_CALLBACK = (err) => err && console.log(err)
+const DEFAULT_CALLBACK = (err, min, silent, shouldThrowErrors = false) => {
+    if (!!silent && !shouldThrowErrors) return
+
+    const isError = !!err && err instanceof Error
+    const isErrorString = !!err && typeof err === 'string'
+
+    let error = undefined
+
+    if (isErrorString) {
+        error = new Error(error)
+    } else if (isError) {
+        error = error
+    }
+
+    if (!error) return
+
+    if (shouldThrowErrors) {
+        throw error
+    } else if (!silent) {
+        console.error(error.message)
+    }
+}
 const DEFAULT_LANGUAGE_IN = 'ECMASCRIPT_2018'
 const DEFAULT_LANGUAGE_OUT = 'ECMASCRIPT5'
 const CONFIG_RC_FILE_NAME = '.ls-minifyrc'
@@ -96,6 +117,7 @@ const minifyJS = (path, options, callback) => {
     const {
         js_compressor,
         silent = false,
+        shouldThrowErrors = false,
         js_language_in = DEFAULT_LANGUAGE_IN,
         js_language_out = DEFAULT_LANGUAGE_OUT,
         override = false,
@@ -128,7 +150,7 @@ const minifyJS = (path, options, callback) => {
 
         compressor = js_compressor
 
-        if (!silent) console.log(`Minifying ${path} ... `)
+        if (!silent) console.info(`Minifying ${path} ... `)
 
         prepareFile(input, replacers).then((inputPath) => {
             _compressor.minify({
@@ -141,7 +163,7 @@ const minifyJS = (path, options, callback) => {
 
                     if (inputPath.indexOf('.ls-minifier-temp.') > -1) deleteTempFile(inputPath)
 
-                    callback(err, min)
+                    callback(err, min, silent, shouldThrowErrors)
                     resolve()
                 },
             })
@@ -153,6 +175,7 @@ const minifyCSS = (path, options, callback) => {
     const {
         css_compressor,
         silent = false,
+        shouldThrowErrors = false,
         override = false,
         signature_file,
         replacers = [],
@@ -172,7 +195,7 @@ const minifyCSS = (path, options, callback) => {
 
         let compressor = css_compressor
 
-        if (!silent) console.log(`Minifying ${path} ... `)
+        if (!silent) console.info(`Minifying ${path} ... `)
 
         prepareFile(input, replacers).then((inputPath) => {
             _compressor.minify({
@@ -185,7 +208,7 @@ const minifyCSS = (path, options, callback) => {
 
                     if (inputPath.indexOf('.ls-minifier-temp.') > -1) deleteTempFile(inputPath)
 
-                    callback(err, min)
+                    callback(err, min, silent, shouldThrowErrors)
                     resolve()
                 },
             })
@@ -197,6 +220,7 @@ const minifyHTML = (path, options, callback) => {
     const {
         html_compressor,
         silent = false,
+        shouldThrowErrors = false,
         override = false,
         signature_file,
         replacers = [],
@@ -219,7 +243,7 @@ const minifyHTML = (path, options, callback) => {
 
         let compressor = html_compressor
 
-        if (!silent) console.log(`Minifying ${path} ... `)
+        if (!silent) console.info(`Minifying ${path} ... `)
 
         prepareFile(input, replacers).then((inputPath) => {
             _compressor.minify({
@@ -232,7 +256,7 @@ const minifyHTML = (path, options, callback) => {
 
                     if (inputPath.indexOf('.ls-minifier-temp.') > -1) deleteTempFile(inputPath)
 
-                    callback(err, min)
+                    callback(err, min, silent, shouldThrowErrors)
                     resolve()
                 },
             })
@@ -291,6 +315,7 @@ if (require.main === module) {
     }
 
     const silent = !!(args.find((a) => a.startsWith('--silent')) || '')
+    const shouldThrowErrors = !!(args.find((a) => a.startsWith('--throwErrors')) || '')
     const js_compressor = (args.find((a) => a.startsWith('--js-compressor=')) || '').replace(
         '--js-compressor=',
         ''
@@ -322,7 +347,7 @@ if (require.main === module) {
 
     if (version) {
         const info = require('./package.json')
-        console.log(`Using ${info.version}`)
+        console.info(`Using ${info.version}`)
     }
 
     lsMinifier(input, {
@@ -330,6 +355,7 @@ if (require.main === module) {
         css_compressor,
         html_compressor,
         silent,
+        shouldThrowErrors,
         js_language_in,
         js_language_out,
         override,
@@ -340,10 +366,14 @@ if (require.main === module) {
         html_compressor_options: extra_configs.html_compressor_options,
     })
         .then(() => {
-            console.log('Minification finished')
+            console.info('Minification finished')
         })
         .catch((err) => {
-            console.error(err)
+            if (shouldThrowErrors) {
+                throw err
+            } else if (!silent) {
+                console.error(err)
+            }
         })
 } else {
     module.exports = lsMinifier

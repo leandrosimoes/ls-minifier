@@ -12,7 +12,7 @@ A tool that minifies all .js, css and html files in a folder recursivelly using 
 
 ### Run CLI
 
-    > ls-minifier --version --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --override --signature-file=./path/to/signature.txt --replacers=[VERSION]|v1.0.0;{{YEAR}}|2019
+    > ls-minifier --version --input=./your/files/path --js-compressor=gcc --language-in=ECMASCRIPT_2018 --language-out=ECMASCRIPT5 --css-compressor=yui --html-compressor=html-minifier --silent --throwErrors --override --signature-file=./path/to/signature.txt --replacers=[VERSION]|v1.0.0;{{YEAR}}|2019
 
 ### Compressors Configuration File
 
@@ -50,6 +50,10 @@ The callback outputs 2 options:
 
 -   **err**: the error of each file
 -   **min**: the output of the minified file
+-   **silent**: true or false depending if the **silent** mode is enabled or not
+-   **shouldThrowErrors**: true or false depending if the **throwErrors** is enabled or not
+
+**ATTENTION**: Using a callback for the outputs will invalidate the option **throwErrors** since you can decide what to do with the errors instead
 
 ##### Example
 
@@ -58,6 +62,7 @@ const lsMinifier = require('ls-minifier')
 const input_path = './'
 const options = {
     silent: true,
+    throwErrors: false,
     js_language_in: 'ECMASCRIPT_2018',
     js_language_out: 'ECMASCRIPT5',
     js_compressor: 'gcc',
@@ -85,7 +90,10 @@ lsMinifier(input_path, options, callback)
 ### Options
 
 -   **silent**
-    If silent mode is on, then logs of which files has been found won't be displayed
+    If silent mode is on, any logs will be displayed
+
+-   **throwErrors**
+    If throwErrors mode is on, any error in the process will be thrown and stop the process, even with silent mode enabled.
 
 -   **js_language_in** (ONLY FOR GCC COMPRESSOR)
     Determine the version of ecmascript of the input file. (Default is ECMASCRIPT_2018)

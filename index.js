@@ -124,7 +124,6 @@ const deleteTempFile = (path) => {
 
 const minifyJS = (path, options, callback) => {
     const {
-        js_compressor,
         silent = false,
         shouldThrowErrors = false,
         js_language_out = DEFAULT_LANGUAGE_OUT,
@@ -147,7 +146,7 @@ const minifyJS = (path, options, callback) => {
 
         const compressor_options = Object.assign(
             {},
-            { ecma: js_language_out },
+            { js: { compress: { ecma: js_language_out, arrows: false }, format: { safari10: true }, mangle: { safari10: true } } },
             js_compressor_options
         )
 
@@ -281,100 +280,83 @@ const lsMinifier = async (input, options = {}, callback = DEFAULT_CALLBACK) => {
     return await walk(input, (path) => run(path, options, callback))
 }
 
-    const args = (process.argv || []).filter((a) => a.startsWith('--'))
-    const CWD = process.cwd()
+const args = (process.argv || []).filter((a) => a.startsWith('--'))
+const CWD = process.cwd()
 
-    let input = (args.find((a) => a.startsWith('--input=')) || '').replace(
-        '--input=',
+let input = (args.find((a) => a.startsWith('--input=')) || '').replace(
+    '--input=',
+    ''
+)
+input = input ? `${CWD}/${input}` : CWD
+input = path.resolve(input)
+
+let signature_file =
+    (args.find((a) => a.startsWith('--signature-file=')) || '').replace(
+        '--signature-file=',
         ''
+    ) || ''
+
+const local_signature_file_path = path.resolve(`${CWD}/${SIGNATURE_FILE_NAME}`)
+
+if (!signature_file && fs.existsSync(local_signature_file_path)) {
+    signature_file = local_signature_file_path
+} else if (signature_file) {
+    signature_file = `${CWD}/${signature_file}`
+    signature_file = path.resolve(signature_file)
+}
+
+let extra_configs = {}
+
+const local_config_rc_file_path = path.resolve(`${CWD}/${CONFIG_RC_FILE_NAME}`)
+
+if (fs.existsSync(local_config_rc_file_path)) {
+    extra_configs = JSON.parse(
+        fs.readFileSync(local_config_rc_file_path).toString()
     )
-    input = input ? `${CWD}/${input}` : CWD
-    input = path.resolve(input)
+}
 
-    let signature_file =
-        (args.find((a) => a.startsWith('--signature-file=')) || '').replace(
-            '--signature-file=',
-            ''
-        ) || ''
-
-    const local_signature_file_path = path.resolve(
-        `${CWD}/${SIGNATURE_FILE_NAME}`
-    )
-
-    if (!signature_file && fs.existsSync(local_signature_file_path)) {
-        signature_file = local_signature_file_path
-    } else if (signature_file) {
-        signature_file = `${CWD}/${signature_file}`
-        signature_file = path.resolve(signature_file)
-    }
-
-    let extra_configs = {}
-
-    const local_config_rc_file_path = path.resolve(
-        `${CWD}/${CONFIG_RC_FILE_NAME}`
-    )
-
-    if (fs.existsSync(local_config_rc_file_path)) {
-        extra_configs = JSON.parse(
-            fs.readFileSync(local_config_rc_file_path).toString()
-        )
-    }
-
-    const silent = !!(args.find((a) => a.startsWith('--silent')) || '')
-    const shouldThrowErrors = !!(
-        args.find((a) => a.startsWith('--throwErrors')) || ''
-    )
-    const js_compressor = (
-        args.find((a) => a.startsWith('--js-compressor=')) || ''
-    ).replace('--js-compressor=', '')
-    const css_compressor = (
-        args.find((a) => a.startsWith('--css-compressor=')) || ''
-    ).replace('--css-compressor=', '')
-    const html_compressor = (
-        args.find((a) => a.startsWith('--html-compressor=')) || ''
-    ).replace('--html-compressor=', '')
-    const js_language_out =
-        (args.find((a) => a.startsWith('--language-out=')) || '').replace(
-            '--language-out=',
-            ''
-        ) || DEFAULT_LANGUAGE_OUT
-    const override = !!(args.find((a) => a.startsWith('--override')) || '')
-    const version = args.find((a) => a.startsWith('--version')) || ''
-    const replacers = (args.find((a) => a.startsWith('--replacers=')) || '')
-        .replace('--replacers=', '')
-        .split(';')
-        .filter((r) => r.length > 0)
-        .map((r) => {
-            const [from, to] = r.split('|')
-            return { from, to }
-        })
-
-    if (version) printVersion()
-
-    lsMinifier(input, {
-        js_compressor,
-        css_compressor,
-        html_compressor,
-        silent,
-        shouldThrowErrors,
-        js_language_out,
-        override,
-        signature_file,
-        replacers,
-        js_compressor_options: extra_configs.js_compressor_options,
-        css_compressor_options: extra_configs.css_compressor_options,
-        html_compressor_options: extra_configs.html_compressor_options,
+const silent = !!(args.find((a) => a.startsWith('--silent')) || '')
+const shouldThrowErrors = !!(
+    args.find((a) => a.startsWith('--throwErrors')) || ''
+)
+const js_language_out =
+    (args.find((a) => a.startsWith('--language-out=')) || '').replace(
+        '--language-out=',
+        ''
+    ) || DEFAULT_LANGUAGE_OUT
+const override = !!(args.find((a) => a.startsWith('--override')) || '')
+const version = args.find((a) => a.startsWith('--version')) || ''
+const replacers = (args.find((a) => a.startsWith('--replacers=')) || '')
+    .replace('--replacers=', '')
+    .split(';')
+    .filter((r) => r.length > 0)
+    .map((r) => {
+        const [from, to] = r.split('|')
+        return { from, to }
     })
-        .then(() => {
-            console.info('Minification finished')
-        })
-        .catch((err) => {
-            if (shouldThrowErrors) {
-                throw err
-            } else if (!silent) {
-                console.error(err)
-            }
-        })
 
+if (version) printVersion()
+
+lsMinifier(input, {
+    silent,
+    shouldThrowErrors,
+    js_language_out,
+    override,
+    signature_file,
+    replacers,
+    js_compressor_options: extra_configs.js_compressor_options,
+    css_compressor_options: extra_configs.css_compressor_options,
+    html_compressor_options: extra_configs.html_compressor_options,
+})
+    .then(() => {
+        console.info('Minification finished')
+    })
+    .catch((err) => {
+        if (shouldThrowErrors) {
+            throw err
+        } else if (!silent) {
+            console.error(err)
+        }
+    })
 
 export default lsMinifier
